@@ -1,20 +1,6 @@
 use std::{str::FromStr, io::Write};
-use itertools::{Tuples, Itertools};
+use itertools::Itertools;
 use colored::Colorize;
-
-fn any_of<T, P>(iter: impl Iterator<Item = T>, predicate: P) -> bool
-where
-    P: Fn(&T) -> bool,
-{
-    let mut ans = false;
-    iter.for_each(|item| {
-        if predicate(&item) {
-            ans = true
-        }
-    });
-
-    ans // why?
-}
 
 #[derive(derive_more::Constructor, Default, Debug)]
 struct Currency {
