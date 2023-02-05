@@ -11,3 +11,4 @@ derive_more = "0.99.17"
 colored = "2.0.0"
 strum = { version = "0.24.1", features = ["derive"] }
 itertools = "0.10.5"
+prettytable-rs = "0.10.0"

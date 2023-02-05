@@ -1,102 +1,11 @@
-use std::{str::FromStr, io::Write};
-use itertools::Itertools;
 use colored::Colorize;
+use std::{io::Write, str::FromStr};
 
-#[derive(derive_more::Constructor, Default, Debug)]
-struct Currency {
-    value: u32,
-}
+mod command;
+mod database;
 
-#[derive(Debug)]
-enum ColumnType {
-    Float(f32),
-    Int(u32),
-    Long(u64),
-    Bool(bool),
-    String(String),
-    Date(chrono::NaiveDate),
-    Currency(Currency),
-}
-
-struct Column {
-    items: Vec<ColumnType>,
-    name: String,
-}
-
-#[derive(derive_more::Constructor)]
-struct Table {
-    name: String,
-    columns: Vec<Column>,
-}
-
-impl Table {
-    fn get_column_by_name(&self, name: &String) -> Option<&Column> {
-        self.columns.iter().find(|column| column.name == *name)
-    }
-}
-
-#[derive(derive_more::Constructor, Default)]
-struct Database {
-    tables: Vec<Table>,
-}
-
-impl Database {
-    fn get_table_by_name(&self, name: &String) -> Option<&Table> {
-        self.tables.iter().find(|table| table.name == *name)
-    }
-}
-
-#[derive(strum::EnumString, Debug, PartialEq)]
-enum Command {
-    #[strum(ascii_case_insensitive)]
-    CREATE,
-    #[strum(ascii_case_insensitive)]
-    SELECT,
-    #[strum(ascii_case_insensitive)]
-    SHOW,
-}
-
-impl Command {
-    fn execute(&self, command: &Vec<String>, database: &mut Database) {
-        match *self {
-            Command::CREATE => create(&command, database),
-            Command::SELECT => select(&command, database),
-            Command::SHOW => show(&command, database),
-        }
-    }
-}
-
-fn create(command: &Vec<String>, database: &mut Database) {
-    let table_name = &command[1];
-
-    match database.get_table_by_name(&table_name) {
-        Some(_) => {
-            println!("{}{}{}{}", "ERROR!".red(), " Could not create table with name \"", table_name.yellow(), "\" since it already exists.");
-            return;
-        }
-        None => {
-            create_table(&command, database);
-        }
-    }
-}
-
-
-fn create_table(command: &Vec<String>, database: &mut Database) {
-    let table_name = &command[1];
-
-    let columns : Vec<(String, String)> = command.iter().skip(2).tuples().map(|(x, y)| (x.to_owned(), y.to_owned())).collect();
-
-    database.tables.push(Table {
-        name: table_name.clone(),
-        columns: Vec::new(),
-    });
-    
-    println!("{}", "Table created!".green())
-}
-
-fn select(command: &Vec<String>, database: &mut Database) {}
-
-fn show(command: &Vec<String>, database: &mut Database) {}
+use command::command::Command;
+use database::database::Database;
 
 fn spawn_cli(database: &mut Database) {
     loop {
@@ -105,12 +14,9 @@ fn spawn_cli(database: &mut Database) {
 
         let mut line = String::new();
 
-        match std::io::stdin().read_line(&mut line) {
-            Ok(_) => (),
-            Err(_) => { 
-                println!("{}{}", "ERROR!".red(), " Could not read command.");
-                continue;
-            }
+        if std::io::stdin().read_line(&mut line).is_err() {
+            println!("{}{}", "ERROR!".red().bold(), " Could not read command.");
+            continue;
         }
 
         let tokens: Vec<String> = line
@@ -118,9 +24,17 @@ fn spawn_cli(database: &mut Database) {
             .map(|token| token.replace("\n", ""))
             .collect();
 
-        match Command::from_str(tokens[0].as_str()) {
-            Err(_) => println!("{}{}{}{}", "ERROR!".red(), " Command \"", tokens[0].yellow(), "\" not found!"),
-            Ok(command) => command.execute(&tokens, database),
+        let command = Command::from_str(tokens[0].as_str());
+
+        match command {
+            Err(_) => println!(
+                "{}{}{}{}",
+                "ERROR!".red().bold(),
+                " Command \"",
+                tokens[0].yellow(),
+                "\" not found!"
+            ),
+            Ok(command) => database.execute_command(command, &tokens),
         }
     }
 }
