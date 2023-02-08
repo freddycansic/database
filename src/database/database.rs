@@ -14,12 +14,17 @@ impl Database {
     }
 
     pub fn execute_command(&mut self, command: Command, command_str: &Vec<String>) {
-        match command {
+        let result = match command {
             Command::CREATE => create(command_str, self),
             Command::SELECT => select(command_str, self),
             Command::SHOW => show(command_str, self),
             Command::ADD => add(command_str, self),
             Command::REMOVE => remove(command_str, self),
+        };
+
+        match result {
+            Ok(ok) => println!("{ok}"),
+            Err(err) => println!("{err}"),
         }
     }
 }

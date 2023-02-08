@@ -5,6 +5,7 @@ use crate::database::column::Column;
 #[derive(derive_more::Constructor, Debug)]
 pub struct Table {
     pub name: String,
+    pub length: usize,
     pub columns: Vec<Column>,
 }
 
@@ -40,6 +41,8 @@ impl Display for Table {
 
             table_str.add_row(prettytable::Row::new(row));
         }
+
+        // let table_str = table_str.to_string().chars().next_back().unwrap().to_string();
 
         write!(f, "{table_str}")
     }

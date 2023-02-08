@@ -6,22 +6,47 @@ pub struct Currency {
     pub value: u32,
 }
 
-#[derive(Debug, strum::EnumString, Clone, Display)]
+#[derive(Debug, strum::EnumString, Clone, Display, PartialEq)]
 pub enum ColumnType {
     #[strum(ascii_case_insensitive)]
-    FLOAT(f64),
+    FLOAT,
     #[strum(ascii_case_insensitive)]
-    INT(i64),
+    INT,
     #[strum(ascii_case_insensitive)]
-    UINT(u64),
+    UINT,
     #[strum(ascii_case_insensitive)]
-    BOOL(bool),
+    BOOL,
     #[strum(ascii_case_insensitive)]
-    STRING(String),
+    STRING,
     #[strum(ascii_case_insensitive)]
-    DATE(chrono::NaiveDate),
+    DATE,
     #[strum(ascii_case_insensitive)]
-    CURRENCY(Currency),
+    CURRENCY,
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct ParseColumnError;
+
+impl ColumnType {
+    pub fn get_string_type(s: &str) -> Result<Self, ParseColumnError> {
+        if s.starts_with('.') || s.ends_with('.') {
+            return Err(ParseColumnError);
+        }
+
+        if s.parse::<i64>().is_ok() {
+            return Ok(ColumnType::INT);
+        }
+
+        if s.parse::<f64>().is_ok() {
+            return Ok(ColumnType::FLOAT);
+        }
+
+        if s.starts_with("\"") && s.ends_with("\"") {
+            return Ok(ColumnType::STRING);
+        }
+
+        Err(ParseColumnError)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -30,9 +55,6 @@ pub struct Column {
     pub items: Vec<String>,
     pub item_type: ColumnType,
 }
-
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub struct ParseColumnError;
 
 impl FromStr for Column {
     type Err = ParseColumnError;
