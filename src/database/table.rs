@@ -1,7 +1,5 @@
 use std::fmt::Display;
 
-use colored::Colorize;
-
 use crate::database::column::Column;
 
 #[derive(derive_more::Constructor, Debug)]
@@ -23,7 +21,10 @@ impl Display for Table {
         // add column name headings
         let mut row: Vec<prettytable::Cell> = Vec::with_capacity(self.columns.len());
         for col_idx in 0..self.columns.len() {
-            row.push(prettytable::Cell::new(&self.columns[col_idx].name));
+            let col = &self.columns[col_idx];
+            row.push(prettytable::Cell::new(
+                &(col.name.clone() + " : " + &col.item_type.to_string()),
+            ));
         }
         table_str.add_row(prettytable::Row::new(row));
 
@@ -40,6 +41,6 @@ impl Display for Table {
             table_str.add_row(prettytable::Row::new(row));
         }
 
-        write!(f, "{}", table_str)
+        write!(f, "{table_str}")
     }
 }

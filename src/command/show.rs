@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use colored::Colorize;
 
 use crate::Database;
@@ -18,7 +20,8 @@ pub fn show(command: &Vec<String>, database: &mut Database) {
 
     match database.get_table_by_name(table_name) {
         Some(table) => {
-            println!("{}", table);
+            print!("{}", table);
+            std::io::stdout().flush().unwrap();
         }
         None => println!(
             "{}{}{}{}",

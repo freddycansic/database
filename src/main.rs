@@ -15,24 +15,22 @@ fn spawn_cli(database: &mut Database) {
         let mut line = String::new();
 
         if std::io::stdin().read_line(&mut line).is_err() {
-            println!("{}{}", "ERROR!".red().bold(), " Could not read command.");
+            println!("{} Could not read command.", "ERROR!".red().bold());
             continue;
         }
 
         let tokens: Vec<String> = line
-            .split(" ")
-            .map(|token| token.replace("\n", ""))
+            .split(' ')
+            .map(|token| token.replace('\n', ""))
             .collect();
 
         let command = Command::from_str(tokens[0].as_str());
 
         match command {
             Err(_) => println!(
-                "{}{}{}{}",
+                "{} Command \"{}\" not found!",
                 "ERROR!".red().bold(),
-                " Command \"",
-                tokens[0].yellow(),
-                "\" not found!"
+                tokens[0].yellow()
             ),
             Ok(command) => database.execute_command(command, &tokens),
         }

@@ -1,4 +1,4 @@
-use std::{str::FromStr, vec};
+use std::str::FromStr;
 use strum::Display;
 
 #[derive(derive_more::Constructor, Default, Debug, Clone)]
@@ -9,15 +9,11 @@ pub struct Currency {
 #[derive(Debug, strum::EnumString, Clone, Display)]
 pub enum ColumnType {
     #[strum(ascii_case_insensitive)]
-    FLOAT(f32),
+    FLOAT(f64),
     #[strum(ascii_case_insensitive)]
-    INT(i32),
+    INT(i64),
     #[strum(ascii_case_insensitive)]
-    LONG(i64),
-    #[strum(ascii_case_insensitive)]
-    UINT(u32),
-    #[strum(ascii_case_insensitive)]
-    ULONG(u64),
+    UINT(u64),
     #[strum(ascii_case_insensitive)]
     BOOL(bool),
     #[strum(ascii_case_insensitive)]
@@ -28,26 +24,11 @@ pub enum ColumnType {
     CURRENCY(Currency),
 }
 
-impl ColumnType {
-    pub fn to_vec(self) -> Vec<ColumnType> {
-        match self {
-            ColumnType::FLOAT(value) => vec![ColumnType::FLOAT(value); 0],
-            ColumnType::INT(value) => vec![ColumnType::INT(value); 0],
-            ColumnType::LONG(value) => vec![ColumnType::LONG(value); 0],
-            ColumnType::UINT(value) => vec![ColumnType::UINT(value); 0],
-            ColumnType::ULONG(value) => vec![ColumnType::ULONG(value); 0],
-            ColumnType::BOOL(value) => vec![ColumnType::BOOL(value); 0],
-            ColumnType::STRING(value) => vec![ColumnType::STRING(value.clone()); 0],
-            ColumnType::DATE(value) => vec![ColumnType::DATE(value); 0],
-            ColumnType::CURRENCY(value) => vec![ColumnType::CURRENCY(value.clone()); 0],
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Column {
     pub name: String,
-    pub items: Vec<ColumnType>,
+    pub items: Vec<String>,
+    pub item_type: ColumnType,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -59,13 +40,12 @@ impl FromStr for Column {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (name, col_type) = s.split_once(" ").ok_or(ParseColumnError)?;
 
-        let items = ColumnType::from_str(col_type)
-            .map_err(|_| ParseColumnError)?
-            .to_vec();
+        let col_type = ColumnType::from_str(col_type).map_err(|_| ParseColumnError)?;
 
         Ok(Column {
             name: name.to_string(),
-            items: items,
+            items: Vec::new(),
+            item_type: col_type,
         })
     }
 }
