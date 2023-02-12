@@ -38,13 +38,6 @@ fn spawn_cli(database: &mut Database) {
 }
 
 fn main() {
-    // TODO read tables from file into database
-    use crate::database::column::ColumnType;
-    println!("{}", ColumnType::get_string_type("\"hello\"").unwrap());
-    println!("{}", ColumnType::get_string_type("1.0").unwrap());
-    println!("{}", ColumnType::get_string_type("10").unwrap());
-    // println!("{}", ColumnType::get_string_type("\"\"z").unwrap());
-
     let mut d = Database::default();
 
     spawn_cli(&mut d);

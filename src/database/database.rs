@@ -1,5 +1,7 @@
+use colored::Colorize;
+
 use crate::command::{
-    add::add, command::Command, create::create, remove::remove, select::select, show::show,
+    add::add, command::Command, create::create, delete::delete, select::select, show::show,
 };
 use crate::database::table::Table;
 
@@ -9,8 +11,15 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn get_table_by_name(&mut self, name: &String) -> Option<&mut Table> {
-        self.tables.iter_mut().find(|table| table.name == *name)
+    pub fn get_table_by_name(&mut self, name: &String) -> Result<&mut Table, failure::Error> {
+        self.tables
+            .iter_mut()
+            .find(|table| table.name == *name)
+            .ok_or(failure::format_err!(
+                "{} Could not find table \"{}\".",
+                "ERROR!".red().bold(),
+                name.yellow()
+            ))
     }
 
     pub fn execute_command(&mut self, command: Command, command_str: &Vec<String>) {
@@ -19,7 +28,7 @@ impl Database {
             Command::SELECT => select(command_str, self),
             Command::SHOW => show(command_str, self),
             Command::ADD => add(command_str, self),
-            Command::REMOVE => remove(command_str, self),
+            Command::DELETE => delete(command_str, self),
         };
 
         match result {

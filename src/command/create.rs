@@ -2,60 +2,54 @@ use colored::Colorize;
 use itertools::Itertools;
 use std::str::FromStr;
 
-use crate::database::column::Column;
+use crate::database::column::{Column, ColumnType, ParseColumnError};
 use crate::database::database::Database;
 use crate::database::table::Table;
 
 pub fn create(command: &Vec<String>, database: &mut Database) -> Result<String, failure::Error> {
     let table_name = &command[1];
 
-    if database.get_table_by_name(&table_name).is_some() {
-        return Err(failure::format_err!(
+    let table = database.get_table_by_name(&table_name).map_err(|_| {
+        failure::format_err!(
             "{}{}{}{}",
             "ERROR!".red().bold(),
             " Could not create table with name \"",
             table_name.yellow(),
             "\" since it already exists."
-        ));
+        )
+    });
+
+    match table {
+        Ok(value) => return Err(failure::format_err!("{}", value)),
+        Err(_) => (),
     }
 
-    if (command.len() - 2) % 2 != 0 {
-        return Err(failure::format_err!(
-            "{}{}",
-            "ERROR!".red().bold(),
-            " Could not create table. Uneven column parameters."
-        ));
-    }
+    let mut columns: Vec<Column> = Vec::new();
 
-    use crate::database::column::ParseColumnError;
-    let columns: Vec<Result<Column, ParseColumnError>> = command
-        .iter()
-        .skip(2)
-        .chunks(2)
-        .into_iter()
-        .map(|mut pair| pair.join(" "))
-        .map(|pair| Column::from_str(&pair))
-        .collect_vec();
+    let num_tokens = command.len();
+    for i in (2..num_tokens).step_by(2) {
+        let col_name = &command[i];
+        let col_type = ColumnType::from_str(&command[i + 1])?;
+        let mut primary_key = false;
 
-    for col in columns.iter() {
-        if col.is_err() {
-            return Err(failure::format_err!(
-                "{}{}",
-                "ERROR!".red().bold(),
-                " Could not create table. Invalid column type."
-            ));
+        println!("{col_name} {col_type}");
+
+        if i+2 < num_tokens {
+            primary_key = if command[i+2] == "pK" { true } else { false };
         }
+
+        columns.push(Column {
+            name: col_name.clone(),
+            items: Vec::new(),
+            item_type: col_type,
+            primary_key: primary_key,
+        })
     }
 
-    let columns = columns.into_iter().map(|col| col.unwrap()).collect_vec();
-
-    let new_table = Table {
+    database.tables.push(Table {
         name: table_name.clone(),
-        length: 0,
         columns: columns,
-    };
-
-    database.tables.push(new_table);
+    });
 
     Ok(format!(
         "{}{}{}{}",

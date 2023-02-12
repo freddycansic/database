@@ -54,20 +54,5 @@ pub struct Column {
     pub name: String,
     pub items: Vec<String>,
     pub item_type: ColumnType,
-}
-
-impl FromStr for Column {
-    type Err = ParseColumnError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (name, col_type) = s.split_once(" ").ok_or(ParseColumnError)?;
-
-        let col_type = ColumnType::from_str(col_type).map_err(|_| ParseColumnError)?;
-
-        Ok(Column {
-            name: name.to_string(),
-            items: Vec::new(),
-            item_type: col_type,
-        })
-    }
+    pub primary_key: bool,
 }

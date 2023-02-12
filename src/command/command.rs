@@ -9,5 +9,5 @@ pub enum Command {
     #[strum(ascii_case_insensitive)]
     ADD,
     #[strum(ascii_case_insensitive)]
-    REMOVE,
+    DELETE,
 }
